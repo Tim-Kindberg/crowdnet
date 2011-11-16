@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/status_item"
+          android:title="@string/status_menu_title" />
+    <item android:title="@string/precious_cargo_menu_title" android:id="@+id/precious_cargo_item"/>
+    <item android:id="@+id/config_item"
+          android:title="@string/config_menu_title" />
+</menu>
