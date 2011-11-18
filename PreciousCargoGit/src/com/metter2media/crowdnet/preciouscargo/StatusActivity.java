@@ -1,4 +1,4 @@
-package com.matter2media.crowdz.preciouscargo;
+package com.metter2media.crowdnet.preciouscargo;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -20,8 +20,19 @@ import android.widget.Toast;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.TextView;
 
+import com.matter2media.crowdnet.CrowdNet;
 import com.matter2media.crowdz.preciouscargo.R;
 
+/**
+ * @author Tim Kindberg <tim@matter2media.com>
+ *
+ * @since Nov 16, 2011
+ * 
+ * Simple interface to control user's role and see info about network inscan range
+ * 
+ * TODO Eliminate this activity in favour of the map (and/or other more helpful interfaces to crowdnet) 
+ * 
+ */
 public class StatusActivity extends Activity 
 {
 	private	TextView 			mOutput;
@@ -64,10 +75,6 @@ public class StatusActivity extends Activity
 								case R.id.radio_role_hold:
 									//report( mCrowdNet.getWiFiManagerMethods() );
 									mCrowdNet.setStateHold();
-									break;
-									
-								case R.id.radio_role_scan:
-									mCrowdNet.setStateScan();
 									break;
 									
 								case R.id.radio_role_sync:
@@ -142,10 +149,6 @@ public class StatusActivity extends Activity
         {
         case CrowdNet.CROWDNET_STATE_NONE:
         	((RadioButton) findViewById(R.id.radio_role_none)).setChecked(true);
-        	break;
-    	
-        case CrowdNet.CROWDNET_STATE_SCAN:
-        	((RadioButton) findViewById(R.id.radio_role_scan)).setChecked(true);
         	break;
     	
         case CrowdNet.CROWDNET_STATE_SYNC:

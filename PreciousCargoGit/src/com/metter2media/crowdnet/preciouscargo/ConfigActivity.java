@@ -1,4 +1,4 @@
-package com.matter2media.crowdz.preciouscargo;
+package com.metter2media.crowdnet.preciouscargo;
 
 import android.app.Activity;
 import android.content.Context;
@@ -16,12 +16,23 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.matter2media.crowdnet.CrowdNet;
 import com.matter2media.crowdz.preciouscargo.R;
 
+/**
+ * @author Tim Kindberg <tim@matter2media.com>
+ *
+ * @since Nov 18, 2011
+ *  
+ * The activity for setting the configuration
+ * Assumes OS Map maps have already been downloaded to mobile (so no need to have wide-area connection)
+ * 
+ * TODO Enable download of config from website
+ * TODO Enable transfer of configs from phone to phone via Bluetooth, barcode, NFC
+ * 
+ */
 public class ConfigActivity extends Activity 
 {
-	public final static String 	DEFAULT_CROWD_NAME = "Precious";
-	public final static String 	DEFAULT_CROWD_PASSWORD = "Cr0wdz77";
 	public final static String 	DEFAULT_LAT = "55.659516";
 	public final static String 	DEFAULT_LONG = "12.591619";
 	public final static String 	DEFAULT_ZOOM = "17";
@@ -61,8 +72,9 @@ public class ConfigActivity extends Activity
         
         mSettings = getSharedPreferences( getString( R.string.prefs ), Context.MODE_PRIVATE );
         mYourNameEditText.setText( mSettings.getString( getString( R.string.prefs_your_name ), "" ) );
-        mCrowdNameEditText.setText( mSettings.getString( getString( R.string.prefs_crowd_name ), DEFAULT_CROWD_NAME ) );
-        mCrowdPasswordEditText.setText( mSettings.getString( getString( R.string.prefs_crowd_password ), DEFAULT_CROWD_PASSWORD ) );
+        mCrowdNameEditText.setText( mSettings.getString( getString( R.string.prefs_crowd_name ), CrowdNet.DEFAULT_CROWD_NAME ) );
+        mCrowdPasswordEditText.setText( mSettings.getString( getString( R.string.prefs_crowd_password ), CrowdNet.DEFAULT_CROWD_PASSWORD ) );
+//mOutput.setText( "Password is " + mSettings.getString( getString( R.string.prefs_crowd_password ), "DEFAULT" ));
         mLatEditText.setText( mSettings.getString( getString( R.string.prefs_map_lat ), DEFAULT_LAT ) );
         mLongEditText.setText( mSettings.getString( getString( R.string.prefs_map_long ), DEFAULT_LONG ) );
         mZoomEditText.setText( mSettings.getString( getString( R.string.prefs_map_zoom ), DEFAULT_ZOOM ) );

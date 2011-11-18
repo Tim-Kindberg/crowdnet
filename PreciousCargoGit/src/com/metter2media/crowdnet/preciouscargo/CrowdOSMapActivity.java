@@ -1,4 +1,4 @@
-package com.matter2media.crowdz.preciouscargo;
+package com.metter2media.crowdnet.preciouscargo;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -51,8 +51,26 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.matter2media.crowdnet.CrowdNet;
+import com.matter2media.crowdnet.Hold;
 import com.matter2media.crowdz.preciouscargo.R;
 
+/**
+ * @author Tim Kindberg <tim@matter2media.com>
+ *
+ * @since Nov 18, 2011
+ * 
+ * The activity for viewing the state of the crowdnet on the map
+ * 
+ * TODO Enable user to:
+ * 	set position
+ * 	assume or drop role of hold/syncer
+ *  pick hold to use
+ *  pick holds to synchronise
+ *  
+ * TODO Provide complimentary view for those uncomfortable with maps, eg list of holds by distance 
+ * 
+ */
 public class CrowdOSMapActivity extends Activity
 {
 	//TextView 		mOutput;
@@ -276,9 +294,6 @@ public class CrowdOSMapActivity extends Activity
 			switch ( mCrowdNet.getState() )
 			{
 				case CrowdNet.CROWDNET_STATE_NONE:
-					break;
-					
-				case CrowdNet.CROWDNET_STATE_SCAN:
 					break;
 					
 				case CrowdNet.CROWDNET_STATE_SYNC:

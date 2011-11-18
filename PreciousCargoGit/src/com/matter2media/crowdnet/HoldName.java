@@ -1,7 +1,15 @@
-package com.matter2media.crowdz.preciouscargo;
+package com.matter2media.crowdnet;
 
 import org.osmdroid.util.GeoPoint;
 
+/**
+ * @author Tim Kindberg <tim@matter2media.com>
+ * 
+ * @since Nov 16, 2011
+ *
+ * The data in a hold's SSID
+ * 
+ */
 public class HoldName 
 {
 	public static final String DELIM = "Y"; // Be careful not to use punctuation - will break some phones !

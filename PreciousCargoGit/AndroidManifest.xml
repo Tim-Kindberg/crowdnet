@@ -20,7 +20,12 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="com.matter2media.crowdz.preciouscargo.CROWDNET_UPDATE" />
+            </intent-filter>
+            </activity>
 
         <activity android:name=".StatusActivity"
                   android:label="@string/status_activity_name">
@@ -44,11 +49,11 @@
                   android:label="@string/config_activity_name">
         </activity>
 
-        <activity android:name=".HelpActivity"
+        <activity android:name="com.matter2media.crowdnet.HelpActivity"
                   android:label="@string/help_activity_name">
         </activity>
 
-		<service android:name=".CrowdNet">
+		<service android:name="com.matter2media.crowdnet.CrowdNet">
 		</service>
     </application>
 </manifest>

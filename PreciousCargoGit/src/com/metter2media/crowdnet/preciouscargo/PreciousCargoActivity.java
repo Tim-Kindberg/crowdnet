@@ -1,8 +1,10 @@
-package com.matter2media.crowdz.preciouscargo;
+package com.metter2media.crowdnet.preciouscargo;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
+import com.matter2media.crowdnet.CrowdData;
+import com.matter2media.crowdnet.CrowdNet;
+import com.matter2media.crowdnet.CrowdNet.CrowdNetServiceBinder;
 import com.matter2media.crowdz.preciouscargo.R;
 
 import android.app.Activity;
@@ -10,11 +12,8 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
-import android.net.wifi.ScanResult;
-import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.Menu;
@@ -24,8 +23,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
+/**
+ * @author Tim Kindberg <tim@matter2media.com>
+ * 
+ * @since Nov 16, 2011
+ * 
+ * This is the test app -- a simple crowd-aware app that allows people to enter messages ('tweets') to be seen by others in mesh mob
+ *  
+ */
 public class PreciousCargoActivity extends Activity 
 {
  
@@ -57,14 +63,14 @@ public class PreciousCargoActivity extends Activity
         setContentView(R.layout.main);
         
         mOutput = (TextView) findViewById(R.id.outputTextView);
-        mSendText = (EditText)findViewById(R.id.croakText);
+        mSendText = (EditText)findViewById(R.id.sendText);
         mSendButton = (Button)findViewById(R.id.sendButton);
         
         mSendButton.setOnClickListener(new View.OnClickListener() 
         {
             public void onClick(View v) 
             {
-                croakTheMessage( mSendButton.getText() );
+                sendTheMessage( mSendText.getText() );
             }
         });
 
@@ -73,8 +79,14 @@ public class PreciousCargoActivity extends Activity
 			@Override
 			public void onReceive(Context context, Intent intent) 
 			{
-				CrowdData[] crowdData = mCrowdNet.getObjectsSince();
-				
+	        	report( "crowdnet update" );
+				List<CrowdData> crowdDataList = mCrowdNet.getObjectsSince();
+				String output = "";
+				for ( CrowdData crowdData : crowdDataList )
+				{
+					output += (String)crowdData.getData() + "\n";
+				}
+				report( output );
 			}
         	
         };
@@ -92,6 +104,28 @@ public class PreciousCargoActivity extends Activity
         {
         	report("Problem creating crowdnet: " + ex );
         }
+    }
+
+    @Override
+    public void onPause() 
+    {
+    	super.onPause();
+    	unregisterReceiver(mCrowdNetStatusReceiver);
+    }
+    
+    @Override
+    public void onResume() 
+    {
+    	super.onResume();
+        IntentFilter crowdNetUpdateFilter;
+        crowdNetUpdateFilter = new IntentFilter( CrowdNet.CROWDNET_UPDATE );
+        registerReceiver(mCrowdNetStatusReceiver , crowdNetUpdateFilter);
+    }
+    
+    @Override
+    public void onDestroy() 
+    {
+    	super.onDestroy();
     }
     
 	void doBindService() 
@@ -143,11 +177,11 @@ public class PreciousCargoActivity extends Activity
     	return mCrowdNet;
     }
     
-    public void croakTheMessage( CharSequence msg )
+    public void sendTheMessage( CharSequence msg )
     {
     	String toSend = msg.toString();
     	toSend.trim();
-    	if ( toSend.length() > 0 ) mCrowdNet.sendString( msg.toString() );
+    	if ( toSend.length() > 0 ) mCrowdNet.sendString( "com.matter2media.crowdz.preciouscargo.tweets", msg.toString() );
     }
     
     public void report( String msg )

@@ -25,21 +25,23 @@
 		android:layout_marginRight="10px"
 		android:layout_marginTop="10px" 
 		android:background="#FFFFFF" 
-		android:id="@+id/croakText" 
+		android:id="@+id/sendText" 
 		android:paddingBottom="10px"
 		android:paddingTop="10px"
 		android:paddingRight="10px"
 		android:paddingLeft="10px"
 		/>
+
 	<Button
 	    android:id="@+id/sendButton"
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"
-        android:layout_below="@id/croakText"
 	    android:layout_alignParentRight="true"
-		android:layout_marginRight="10px"
-	    android:layout_marginLeft="10dip" 
-	    android:text="Croak" />
+	    android:layout_below="@id/sendText"
+	    android:layout_marginLeft="10dip"
+	    android:layout_marginRight="10px"
+	    android:text="@string/send_button_name" />
+
 	</RelativeLayout>
 	<TextView 
 		android:textAppearance="?android:attr/textAppearanceMedium" 

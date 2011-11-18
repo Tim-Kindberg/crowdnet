@@ -28,4 +28,5 @@
     <string name="prefs_map_lat">mapLat</string>
     <string name="prefs_map_long">mapLong</string>
     <string name="prefs_map_zoom">mapZoom</string>
+    <string name="send_button_name">Send</string>
 </resources>

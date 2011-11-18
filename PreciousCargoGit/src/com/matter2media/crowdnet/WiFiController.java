@@ -1,4 +1,4 @@
-package com.matter2media.crowdz.preciouscargo;
+package com.matter2media.crowdnet;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -18,17 +18,28 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.NetworkInfo;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.net.wifi.WifiManager.WifiLock;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.telephony.TelephonyManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
 
+/**
+ * @author Tim Kindberg <tim@matter2media.com>
+ *
+ * @since Nov 17, 2011
+ * 
+ * A class used to control the WiFi state, used by a CrowdNet
+ * 
+ */
 public class WiFiController
 {
 	public static final int		WIFI_STATE_NONE = 0;
@@ -50,23 +61,56 @@ public class WiFiController
 		mCrowdNet = crowdNet;
         mWiFiManager = (WifiManager) mCrowdNet.getSystemService(Context.WIFI_SERVICE);
         mWiFiReceiver = new WifiReceiver();
-        mState = WIFI_STATE_NONE;
         mConnectedApBSSID = null;
+        IntentFilter intentFilter = new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+        intentFilter.addAction( WifiManager.WIFI_STATE_CHANGED_ACTION );
+        intentFilter.addAction( WifiManager.NETWORK_STATE_CHANGED_ACTION );
+		mCrowdNet.registerReceiver( mWiFiReceiver, intentFilter );
+		mConnectedApBSSID = currentlyConnectedBSSID();
+        mState = ( mConnectedApBSSID == null ? WIFI_STATE_NONE : WIFI_STATE_CONNECTED );
+		report ("WiFiController: isWiFiAPOn() returns " + isWiFiAPOn() );
 	}
 	    
+    public void setModeScanOnly()
+    {
+        WifiLock lock = mWiFiManager.createWifiLock( WifiManager.WIFI_MODE_SCAN_ONLY, "CrowdNet" );
+        if ( !lock.isHeld() ) lock.acquire();
+    }
+    
+    public void setModeFull()
+    {
+        WifiLock lock = mWiFiManager.createWifiLock( WifiManager.WIFI_MODE_FULL, "CrowdNet" );
+        if ( !lock.isHeld() ) lock.acquire();
+    }
+    
     public void enableWiFiMulticast()
     {
         WifiManager.MulticastLock multicastLock = mWiFiManager.createMulticastLock("CrowdNet");
         multicastLock.acquire();
     }
     
-	public void send( String data )
-	{
-		
-	}
-	
+    public int getWifiState()
+    {
+    	return this.mWiFiManager.getWifiState();
+    }
+    
+    public boolean isWifiEnabled()
+    {
+    	return this.mWiFiManager.isWifiEnabled();
+    }
+    
+    public String currentlyConnectedBSSID()
+    {
+    	String bssid;
+    	WifiInfo wifiInfo = this.mWiFiManager.getConnectionInfo();
+    	if ( wifiInfo != null && ( bssid = wifiInfo.getBSSID() ) != null )
+    		return bssid;
+    	return null;
+    }
+    
 	public void shutdown()
 	{
+		setStateNone();
 		try { mCrowdNet.unregisterReceiver( this.mWiFiReceiver ); } catch ( Exception e ) {}
 	}
 	
@@ -83,6 +127,16 @@ public class WiFiController
 	
 	public void setWiFiAP(String ssid, String password, boolean enabled)
 	{
+		if ( currentlyConnectedBSSID() != null )
+		{
+			if ( !enabled ) return;
+			mWiFiManager.disconnect();
+			mState = WIFI_STATE_AP;
+			mApSSID = ssid;
+			mApPassword = password;
+			return;
+		}
+		
         WifiConfiguration wifiConfiguration = new WifiConfiguration(); 
 
         wifiConfiguration.SSID = ssid;
@@ -112,10 +166,13 @@ public class WiFiController
         		//report(method.getName());
         		if ( method.getName().equals("setWifiApEnabled") )
         		{
+        			report("Set AP for " + ssid + " " + password + " enabled " + enabled );
         			foundApMethod = true;
         			method.invoke(mWiFiManager, wifiConfiguration, enabled);
         			mApSSID = ssid;
         			mApPassword = password;
+        			mState = WIFI_STATE_AP;
+        			report ("isWiFiAPOn() returns " + isWiFiAPOn() );
         			break;
         		}
         		//int netty = wifi.addNetwork(_wifi_configuration);
@@ -124,17 +181,56 @@ public class WiFiController
         }
         catch ( Exception ex )
         {
-        	report("Problem " + ex );
+        	report("Problem setting AP mode " + ex );
         }
         if ( !foundApMethod )
         	report("ApMethod not found");
     }
 
+	public boolean isWiFiAPOn()
+	{
+		/*
+		 * TODO needs to throw exception if no such method
+		 */
+		try
+		{
+			Method method = mWiFiManager.getClass().getMethod( "getWifiApConfiguration" );
+			WifiConfiguration config = (WifiConfiguration)method.invoke( mWiFiManager );
+			return ( config != null && config.status == WifiConfiguration.Status.ENABLED );
+		}
+		catch ( Exception e )
+		{
+			
+		}
+		return false;
+	}
+	
 	public void setWiFiAPOff( )
 	{
 		setWiFiAP( mApSSID, mApPassword, false );
+		report ("setWiFiAPOff: isWiFiAPOn() returns " + isWiFiAPOn() );
 	}
 	
+	public void setStateNone()
+	{
+		switch ( mState )
+		{
+			case WIFI_STATE_NONE:
+				return;
+				
+			case WIFI_STATE_AP:
+				setWiFiAPOff( );
+				break;
+				
+			case WIFI_STATE_SCAN:
+				return;
+				
+			case WIFI_STATE_CONNECTED:
+				break;
+		}
+		mState = WIFI_STATE_NONE;
+	}
+
 	public void setToScan()
 	{
 		switch ( mState )
@@ -152,9 +248,11 @@ public class WiFiController
 			case WIFI_STATE_CONNECTED:
 				break;
 		}
-		mWiFiManager.setWifiEnabled( true );
-		mCrowdNet.registerReceiver( mWiFiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION) );
-	    mWiFiManager.startScan();   
+		if ( isWifiEnabled() ) 
+			mWiFiManager.startScan();  
+		else
+			if ( this.getWifiState() != WifiManager.WIFI_STATE_ENABLING )
+				mWiFiManager.setWifiEnabled( true );
 		mState = WIFI_STATE_SCAN;
 	}
 
@@ -174,7 +272,7 @@ public class WiFiController
        mCrowdNet.handleScan( wifiList );
    }
    
-   public void connectToAp( String bssid, String password )
+   public boolean connectToAp( String bssid, String password )
    {
 	   WifiInfo wiFiInfo = mWiFiManager.getConnectionInfo();
 	   String existingConnectionBSSID = null;
@@ -182,7 +280,7 @@ public class WiFiController
 	   {
 		   if ( wiFiInfo.getBSSID().equals( bssid ) ) 
 		   {
-			   return;
+			   return true;
 		   }
 		   else
 		   {
@@ -191,7 +289,7 @@ public class WiFiController
 	   }
        // Find highest priority & any existing config for this BSSID
 	   List<WifiConfiguration> existingConfigs = mWiFiManager.getConfiguredNetworks();
-	   int maxPriority = -1;
+	   int maxPriority = -1000;
 	   int existingBssidConfigId = -1;
        for ( WifiConfiguration wifiConfig : existingConfigs )
        {
@@ -227,7 +325,8 @@ public class WiFiController
        wc.priority = maxPriority + 1;
        
        // connect to and enable the connection
-       if ( existingConnectionBSSID != null ) mWiFiManager.disconnect();
+       if ( existingConnectionBSSID != null ) try { mWiFiManager.disconnect(); } catch ( Exception e ) {}
+
        if ( existingBssidConfigId < 0 )
        {
     	   int netId = mWiFiManager.addNetwork(wc);
@@ -242,32 +341,45 @@ public class WiFiController
        mConnectedApBSSID = bssid;
        mWiFiManager.setWifiEnabled(true);
        
-	   while ( ( wiFiInfo = mWiFiManager.getConnectionInfo() ) == null || wiFiInfo.getNetworkId() < 0)
+       int maximumPolls = 15;
+	   while ( --maximumPolls >= 0 && ( ( wiFiInfo = mWiFiManager.getConnectionInfo() ) == null || wiFiInfo.getNetworkId() < 0 ) )
 	   {
-		   try { Thread.currentThread().sleep( 100 ); } catch ( Exception e ) {}
+		   try { Thread.currentThread().sleep( 200 ); } catch ( Exception e ) {}
 	   }
+	   
+	   return ( ( wiFiInfo = mWiFiManager.getConnectionInfo() ) != null && wiFiInfo.getNetworkId() >= 0 );
    }
    
    public void disconnect()
    {
-	   if ( mConnectedApBSSID != null ) mWiFiManager.disconnect();
+	   if ( mConnectedApBSSID != null ) 
+	   {
+		   try 
+		   { 
+			   mWiFiManager.disconnect(); 
+			   mConnectedApBSSID = null;
+		   } 
+		   catch ( Exception e ) {}
+	   }
    }
    
    /*
-    * Only works when WiFi on?
+    * Return the WiFi MAC address 
+    * 
+    * TODO Haven't figured out how to do this yet
     */
    public String getMACaddress()
    {
 	   /*
+	    *  only works if connected?! Must be a better way!
 	   if ( mMACaddress == null )
 	   {
-		   turnWiFiOn();
 		   WifiInfo wifiInf = mWiFiManager.getConnectionInfo();
-		   turnWiFiOff();
 		   mMACaddress = wifiInf.getMacAddress();
 	   }
 	   */
-	   return "56789"; //mMACaddress;
+	   TelephonyManager telephonyManager = (TelephonyManager)mCrowdNet.getSystemService(Context.TELEPHONY_SERVICE);
+	   return telephonyManager.getDeviceId();
    }
    
    private void report( String msg )
@@ -279,8 +391,68 @@ public class WiFiController
    {
        public void onReceive(Context c, Intent intent) 
        {
-       	report("onReceive");
-       	handleScan( mWiFiManager.getScanResults() );
+    	   report("onReceive");
+    	   if ( intent.getAction().equals(  WifiManager.SCAN_RESULTS_AVAILABLE_ACTION ))
+    	   {
+    		   /*
+    		    * TODO: CONTROL SCAN FREQUENCY
+    		    */
+    		   handleScan( mWiFiManager.getScanResults() );
+    	   }
+    	   else
+        	   if ( intent.getAction().equals(  WifiManager.WIFI_STATE_CHANGED_ACTION ))
+        	   {
+        		   int state = intent.getIntExtra( WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN );
+        		   switch ( state )
+        		   {
+        		   		case WifiManager.WIFI_STATE_DISABLED:
+        		   			break;
+        		   			
+        		   		case WifiManager.WIFI_STATE_DISABLING:
+        		   			break;
+        		   			
+        		   		case WifiManager.WIFI_STATE_ENABLED:
+        		   			switch ( mState )
+        		   			{
+        		   				case WIFI_STATE_NONE:
+        		   					break;
+        		   					
+        		   				case WIFI_STATE_AP:
+        		   					break;
+        		   					
+        		   				case WIFI_STATE_SCAN:
+        		   					mWiFiManager.startScan();
+        		   					break;
+        		   					
+        		   				case WIFI_STATE_CONNECTED:
+        		   					break;
+        		   			}
+        		   			break;
+        		   			
+        		   		case WifiManager.WIFI_STATE_ENABLING:
+        		   			break;
+        		   			
+         			   default:
+         				   break;
+        		   }
+        	   }
+        	   else
+               	   if ( intent.getAction().equals(  WifiManager.NETWORK_STATE_CHANGED_ACTION ))
+               	   {
+               		   	NetworkInfo info = (NetworkInfo)intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+						if (info.getState().equals(NetworkInfo.State.CONNECTED))
+						{
+						}
+						else if ( info.getState().equals(NetworkInfo.State.DISCONNECTED) )
+						{
+							   mConnectedApBSSID = null;
+							if ( mState == WIFI_STATE_AP )
+							{
+								setWiFiAP( mApSSID, mApPassword, true ); 
+				       			report ("isWiFiAPOn() returns " + isWiFiAPOn() );
+							}
+						}
+              	   }
        }
    }
 

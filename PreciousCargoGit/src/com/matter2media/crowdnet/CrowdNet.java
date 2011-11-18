@@ -1,5 +1,4 @@
-package com.matter2media.crowdz.preciouscargo;
-
+package com.matter2media.crowdnet;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,39 +6,42 @@ import java.util.List;
 
 import org.osmdroid.util.GeoPoint;
 
+import com.matter2media.crowdz.preciouscargo.R;
+
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.wifi.ScanResult;
-import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.EditText;
 import android.widget.Toast;
 
-
-/*
+/**
+ * @author Tim Kindberg <tim@matter2media.com>
+ * 
+ * @since Nov 16, 2011
+ *
+ * The Android service responsible for transmitting data bwteen this and other nodes
+ * 
  * See http://www.java2s.com/Open-Source/Android/Location/wifispy/com/synthable/wifispy/services/WifiSpyService.java.htm
+ * 
  */
-
 public class CrowdNet extends Service implements LocationListener
 {
+	public final static String 	DEFAULT_CROWD_NAME = "Precious";
+	public final static String 	DEFAULT_CROWD_PASSWORD = "Cr0wdz77";
+
 	public static final String CROWDNET_UPDATE = "com.matter2media.crowdz.preciouscargo.CROWDNET_UPDATE";
 	
 	public static final int		CROWDNET_STATE_NONE = 0;
-	public static final int		CROWDNET_STATE_SCAN = 1;
-	public static final int		CROWDNET_STATE_SYNC = 2;
+	public static final int		CROWDNET_STATE_SYNC = 1;
 	public static final int		CROWDNET_STATE_HOLD = 3;
 	
 	private WiFiController		mWiFiController;
@@ -52,7 +54,8 @@ public class CrowdNet extends Service implements LocationListener
 	private String 				mLocationProvider;
 	private String				mMyMacAddress;
 	private Hold				mThisHold;
-	private HashMap<String, Hold>		mHolds; // All the Holds we have heard of. Some may no longer be visible (in scan range)
+	private HashMap<String, Hold>		mHolds; // All the Holds we have heard of, by BSSID. Some may no longer be visible (in scan range)
+	private SyncTask			mSyncTask;
 
 
     /**
@@ -84,11 +87,11 @@ public class CrowdNet extends Service implements LocationListener
         mWiFiController = new WiFiController( this );
         mMyMacAddress = mWiFiController.getMACaddress();
         mCrowdServer = new CrowdServer( this, 8080 );
-    	report("Created CrowdServer...");
        	mCrowdServer.startServer();
        	report("Started CrowdServer...");
         mState = CROWDNET_STATE_NONE;
         mSequence = mSettings.getLong( getString( R.string.prefs_crowd_sequence ), 0 );
+        mSyncTask = null;
         setCrowd();
     }
 
@@ -106,7 +109,10 @@ public class CrowdNet extends Service implements LocationListener
         super.onDestroy();
         mWiFiController.shutdown();
         mCrowdServer.shutdown();
-        report("CrowdNet Service is stopping...");
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putLong( getString( R.string.prefs_crowd_sequence ), mSequence );
+        report("CrowdNet Service has stopped");
+        editor.commit();
     }
 
     @Override
@@ -124,11 +130,10 @@ public class CrowdNet extends Service implements LocationListener
     public synchronized void notifyHandlers()
     {
         Intent intent = new Intent( CROWDNET_UPDATE );
-        //intent.putExtra(ACCELERATION_X, accelerationX);
         sendBroadcast(intent);
     }
 
-    public CrowdData[] getObjectsSince()
+    public List<CrowdData> getObjectsSince()
     {
     	return mCrowdServer.getObjectsSince();
     }
@@ -146,9 +151,10 @@ public class CrowdNet extends Service implements LocationListener
 		mCrowdServer.addData( crowdData );
 	}
 	
-	public void sendString( String data )
+	public void sendString( String topic, String data )
 	{
-		mCrowdServer.addData( new CrowdData( mMyMacAddress, mSequence++, "text/plain", data.getBytes() ) );
+		mCrowdServer.addData( new CrowdData( topic, mMyMacAddress, mSequence++, "text/plain", data ) );
+		notifyHandlers();
 	}
 	
 	public void dataFromServer( CrowdData crowdData )
@@ -158,12 +164,12 @@ public class CrowdNet extends Service implements LocationListener
 	
 	public String getCrowdName()
 	{
-		return mSettings.getString( getString( R.string.prefs_crowd_name ), "" );
+		return mSettings.getString( getString( R.string.prefs_crowd_name ), DEFAULT_CROWD_NAME );
 	}
 	
 	public String getCrowdPassword()
 	{
-		return mSettings.getString( getString( R.string.prefs_crowd_password ), "" );
+		return mSettings.getString( getString( R.string.prefs_crowd_password ), DEFAULT_CROWD_PASSWORD );
 	}
 	
 	public String getYourName()
@@ -176,6 +182,9 @@ public class CrowdNet extends Service implements LocationListener
 		return "0000";
 	}
 	
+   /*
+    * State management
+	*/
 	public int getState()
 	{
 		return mState;
@@ -188,11 +197,8 @@ public class CrowdNet extends Service implements LocationListener
 			case CROWDNET_STATE_NONE:
 				return "crowdnet inactive";
 				
-			case CROWDNET_STATE_SCAN:
-				return "after " + mScanCount + " scans crowdnet seeing " + mAPcount + " APs of which " + getHoldsInRange().size() + " are holds";
-				
 			case CROWDNET_STATE_SYNC:
-				return "crowdnet syncing";
+				return "after " + mScanCount + " scans crowdnet seeing " + mAPcount + " APs of which " + getHoldsInRange().size() + " are holds";
 				
 			case CROWDNET_STATE_HOLD:
 				return "crowdnet hold is called " + mThisHold.getHoldName();
@@ -206,7 +212,7 @@ public class CrowdNet extends Service implements LocationListener
 	
 	public void setStateNone()
 	{
-		mWiFiController.shutdown();
+		mWiFiController.setStateNone();
 		mState = CROWDNET_STATE_NONE;
 	}
 	
@@ -217,7 +223,6 @@ public class CrowdNet extends Service implements LocationListener
 	
 	public void setStateHold( GeoPoint point )
 	{
-		setStateNone();
 		//mWiFiManager.setWifiEnabled( true );
 		if ( point == null )
 		{
@@ -237,6 +242,27 @@ public class CrowdNet extends Service implements LocationListener
 			setWiFiAP( point );
 		}
 		mState = CROWDNET_STATE_HOLD;
+	}
+	
+	public void setStateSync()
+	{
+		mWiFiController.setToScan();
+		mState = CROWDNET_STATE_SYNC;
+	}
+	
+	public void doSync( SyncTask task )
+	{
+		/*
+		 * TODO queue of syncTasks
+		 */
+		if ( mState == CROWDNET_STATE_SYNC )
+		{
+			if ( mSyncTask == null || mSyncTask.isFinished() )
+			{
+				mSyncTask = task;
+				mSyncTask.doSync();
+			}
+		}
 	}
 	
 	private void setWiFiAP( GeoPoint point )
@@ -259,61 +285,44 @@ public class CrowdNet extends Service implements LocationListener
 	}
 	
 
-	public void setStateSync()
-	{
-		setStateScan();
-		mState = CROWDNET_STATE_SYNC;
-	}
-	
-	public void setStateScan()
-	{
-		setStateNone();
-		mWiFiController.setToScan();
-		mState = CROWDNET_STATE_SCAN;
-	}
-
    public void handleScan( List<ScanResult> wifiList )
    {
-	   ++mScanCount;
-	   mAPcount = wifiList.size();
-	   // Guilty until proved innocent
-	   for (Hold hold : mHolds.values()) 
-	   {
-		    hold.setNotInRange();
-	   }
-	   
-	   boolean sucked = false;
-       for (int i = 0; i < wifiList.size(); i++)
-       {
-       	   String bssid = wifiList.get(i).BSSID;
-       	   String ssid = wifiList.get(i).SSID;
-    	   Hold already = mHolds.get( bssid );
-    	   try
-    	   {
-	    	   if ( already == null )
-	           {
-	      		   Hold hold = new Hold( bssid, ssid );
-	      		   hold.setInRange();
-	      		   mHolds.put( bssid, hold );
-	      		   
-	      		   if ( !sucked )
-	      		   {
-	      			   sucked = true;
-	      			   String result = extractData( hold );  
-		      		   Toast.makeText(this , "Sucked " + result, Toast.LENGTH_LONG).show();
-	      		   }
-	           }
-	    	   else
+		if ( mState == CROWDNET_STATE_SYNC )
+		{
+		   ++mScanCount;
+		   mAPcount = wifiList.size();
+		   
+		   // Guilty until proved innocent
+		   for (Hold hold : mHolds.values()) 
+		   {
+			    hold.setNotInRange();
+		   }
+		   
+	       for (int i = 0; i < wifiList.size(); i++)
+	       {
+	       	   String bssid = wifiList.get(i).BSSID;
+	       	   String ssid = wifiList.get(i).SSID;
+	    	   Hold already = mHolds.get( bssid );
+	    	   try
 	    	   {
-	         	   already.setInRange( ssid );
-	    	   }     
-    	   }
-    	   catch ( HoldName.NotAHoldNameException ex )
-    	   {
-    		   if ( already != null ) mHolds.remove( bssid );
-    	   }
-       }
-       notifyHandlers();
+		    	   if ( already == null )
+		           {
+		      		   Hold hold = new Hold( bssid, ssid );
+		      		   hold.setInRange();
+		      		   mHolds.put( bssid, hold );
+		           }
+		    	   else
+		    	   {
+		         	   already.setInRange( ssid );
+		    	   }     
+	    	   }
+	    	   catch ( HoldName.NotAHoldNameException ex )
+	    	   {
+	    		   if ( already != null ) mHolds.remove( bssid );
+	    	   }
+	       }
+	       notifyHandlers();
+		}
    }
 
    public HashSet<Hold> getHoldsInRange()
@@ -328,7 +337,6 @@ public class CrowdNet extends Service implements LocationListener
    
    public void report( String msg )
    {
-	   //mCroakActivity.report( msg );
 	   Log.v("CrowdNet", msg );
    }
 
@@ -367,18 +375,6 @@ public class CrowdNet extends Service implements LocationListener
    	
    }
 
-   /*
-    * Synchronisation operations
-    */
-   public String extractData( Hold from )
-   {
-	   mWiFiController.connectToAp( from.mBSSID, this.getCrowdPassword() );
-	   String result = new CrowdServerClient().getStoreContents();
-	   mWiFiController.disconnect();
-	   
-	   return result;
-   }
-   
    /*
     * WiFi management
 	*/

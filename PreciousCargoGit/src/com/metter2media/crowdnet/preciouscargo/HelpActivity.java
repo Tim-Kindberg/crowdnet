@@ -1,4 +1,4 @@
-package com.matter2media.crowdz.preciouscargo;
+package com.metter2media.crowdnet.preciouscargo;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -11,6 +11,16 @@ import android.widget.TextView;
 
 import com.matter2media.crowdz.preciouscargo.R;
 
+/**
+ * @author Tim Kindberg <tim@matter2media.com>
+ *
+ * @since Nov 18, 2011
+ * 
+ * The activity for viewing the state of the crowdnet on the map
+ * 
+ * TODO Provide actual help!
+ * 
+ */
 public class HelpActivity extends Activity 
 {
 	//TextView 		mOutput;

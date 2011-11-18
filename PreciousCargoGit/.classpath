@@ -5,5 +5,7 @@
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry kind="lib" path="/Users/tim/Desktop/Eclipse/SharedJars/slf4j-android-1.5.8.jar"/>
 	<classpathentry kind="lib" path="/Users/tim/Desktop/Eclipse/SharedJars/osmdroid-android-3.0.5.jar"/>
+	<classpathentry kind="lib" path="/Users/tim/Desktop/Eclipse/SharedJars/google-gson-2.0/gson-2.0.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/QuickActions"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

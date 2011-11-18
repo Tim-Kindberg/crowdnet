@@ -1,13 +1,21 @@
-package com.matter2media.crowdz.preciouscargo;
+package com.matter2media.crowdnet;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.osmdroid.util.GeoPoint;
 
-import com.matter2media.crowdz.preciouscargo.HoldName.NotAHoldNameException;
+import com.matter2media.crowdnet.HoldName.NotAHoldNameException;
 
-public class Hold extends AgedData
+/**
+ * @author Tim Kindberg <tim@matter2media.com>
+ * 
+ * @since Nov 16, 2011
+ *
+ * Record of a hold (which may or may not be current)
+ * 
+ */
+public class Hold extends AgeStamp
 {
 	public String 		mBSSID;
 	private HoldName 	mHoldName;

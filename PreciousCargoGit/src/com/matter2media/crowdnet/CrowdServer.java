@@ -1,24 +1,19 @@
-package com.matter2media.crowdz.preciouscargo;
+package com.matter2media.crowdnet;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.MethodNotSupportedException;
-import org.apache.http.entity.ContentProducer;
-import org.apache.http.entity.EntityTemplate;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.DefaultHttpResponseFactory;
@@ -34,12 +29,21 @@ import org.apache.http.protocol.ResponseConnControl;
 import org.apache.http.protocol.ResponseContent;
 import org.apache.http.protocol.ResponseDate;
 import org.apache.http.protocol.ResponseServer;
+import org.apache.http.util.EntityUtils;
 
 import android.content.Context;
 
+/**
+ * @author Tim Kindberg <tim@matter2media.com>
+ *
+ * @since Nov 16, 2011
+ * 
+ * Basic web server and store for CrowdObjects in a hold
+ * 
+ */
 public class CrowdServer  implements Runnable
 {
-	public final String 		HOME_PATTERN = "*";
+	public final String 		URI_PATTERN = "*";
 	
 	private CrowdNet			mCrowdNet;
 	private CrowdStore			mCrowdStore;
@@ -76,7 +80,7 @@ public class CrowdServer  implements Runnable
 
     		mHttpService.setHandlerResolver( mHttpRegistry );
     		
-    		mHttpRegistry.register(HOME_PATTERN, new CrowdCommandHandler( mContext ));
+    		mHttpRegistry.register(URI_PATTERN, new CrowdCommandHandler( mContext ));
 
     		mServerPort = serverPort;
         	mServerSocket = new ServerSocket( mServerPort, 50, null );
@@ -105,7 +109,7 @@ public class CrowdServer  implements Runnable
 		mCrowdStore.addData(data);
 	}
 
-    public CrowdData[] getObjectsSince()
+    public List<CrowdData> getObjectsSince()
     {
     	return mCrowdStore.getObjectsSince();
     }
@@ -116,14 +120,11 @@ public class CrowdServer  implements Runnable
 		while ( mRunning )
 		{
 			DefaultHttpServerConnection serverConnection = null;
-	    	//mCrowdNet.report("Accepting...");
 			try
 			{
 				Socket socket = mServerSocket.accept();
 				
-		    	//mCrowdNet.report("Accepted...");
-
-				// TO_DO: put remainder in worker thread
+				// TO_DO: put this in worker thread
 				serverConnection = new DefaultHttpServerConnection();
 
 				serverConnection.bind(socket, new BasicHttpParams());
@@ -166,38 +167,66 @@ public class CrowdServer  implements Runnable
             String target = request.getRequestLine().getUri();
             String resource = URLDecoder.decode(target);
             
+        	int statusCode  = HttpStatus.SC_OK;
             if (method.equals("GET"))
             {
-            	response.setStatusCode(HttpStatus.SC_OK);
-            	if ( resource.equals("status") )
+            	if ( resource.equals("/status") )
             	{
-                   	StringEntity body = new StringEntity("You asked to GET " + resource);
-                	response.setEntity(body);            		
+                   	StringEntity body = new StringEntity( "Status is not yet implemented" );
+                	response.setEntity(body);   
             	}
-            	else if ( resource.startsWith("pull/") )
+            	else if ( resource.startsWith("/pull") )
             	{
-            		
+            		// TO_DO: allow a number after 'pull' and pass that as parameter to exportObjectsSince()
+            		// E.g. a GET on pull/1000 will retrieve only objects younger than 1000 seconds
+            		String json = mCrowdStore.exportObjectsSince();
+                   	StringEntity body = new StringEntity( json );
+                	response.setEntity(body);
+                	response.setHeader( "Content-type", "text/plain"/*"application/json"*/ );
             	}
             	else
             	{
-                	response.setStatusCode(HttpStatus.SC_NOT_FOUND);
+                   	StringEntity body = new StringEntity( "resource not found: " + resource );
+                	response.setEntity(body);   
+            		statusCode = HttpStatus.SC_NOT_FOUND;
             	}
             	
              }
             else if ( method.equals("POST") ) 
             {
-            	if ( resource.startsWith("push/") )
+            	if ( resource.startsWith("/push") )
             	{
-            		response.setStatusCode(HttpStatus.SC_OK);
+            		String type = request.getFirstHeader( "Content-type" ).getValue();
+            		if ( "application/json".equals( type ) )
+            		{
+            			if (request instanceof HttpEntityEnclosingRequest) 
+            			{
+            				try
+            				{
+	                            HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
+	                            byte[] entityContent = EntityUtils.toByteArray(entity);
+	                            String json = new String( entityContent );
+	                            mCrowdStore.importObjects( json );
+	                            StringEntity body = new StringEntity( "Thank you. You're very kind." );
+	                            response.setEntity(body);
+            				}
+            				catch ( Exception e )
+            				{
+            					mCrowdNet.report( "Problem with POST " + e );
+            					statusCode = HttpStatus.SC_BAD_REQUEST;
+            				}
+                        }            			
+            		}
+            		else
+            		{
+                		statusCode = HttpStatus.SC_BAD_REQUEST;
+            		}
             	}
             	else
             	{
-                	response.setStatusCode(HttpStatus.SC_NOT_FOUND);
-            	}
-            	
-            	
-            	StringEntity body = new StringEntity("You asked to POST " + resource );
-            	response.setEntity(body);
+            		statusCode = HttpStatus.SC_NOT_FOUND;
+            	}            	
+            	response.setStatusCode( statusCode );
             }
             else
             {

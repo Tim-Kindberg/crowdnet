@@ -1,4 +1,4 @@
-package com.matter2media.crowdz.preciouscargo;
+package com.matter2media.crowdnet;
 
 import java.net.Socket;
 
@@ -27,6 +27,14 @@ import org.apache.http.util.EntityUtils;
 
 import android.util.Log;
 
+/**
+ * @author Tim Kindberg <tim@matter2media.com>
+ * 
+ * @since Nov 16, 2011
+ *
+ * Client of a crowdserver (hold) at another node
+ * 
+ */
 public class CrowdServerClient 
 {
 	private HttpParams 			mParams;
@@ -71,7 +79,7 @@ public class CrowdServerClient
             Socket socket = new Socket(mHost.getHostName(), mHost.getPort());
             conn.bind(socket, mParams);
 
-            BasicHttpRequest request = new BasicHttpRequest("GET", "/something");
+            BasicHttpRequest request = new BasicHttpRequest("GET", "/pull");
             request.setParams(mParams);
             httpexecutor.preProcess(request, mHttpproc, context);
             HttpResponse response = httpexecutor.execute(request, conn, context);
