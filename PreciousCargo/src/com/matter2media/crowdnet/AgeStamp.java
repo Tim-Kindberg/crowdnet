@@ -1,7 +1,7 @@
 package com.matter2media.crowdnet;
 
 import java.util.Date;
-
+ 
 /**
  * @author Tim Kindberg <tim@matter2media.com>
  *
@@ -13,16 +13,15 @@ import java.util.Date;
  * 	Initialise when create an agestamped object
  *  Just before transfer to another node, call makeAgeCurrent()
  *  Upon arrival at another node, call setToLocalClock()
- * Obviously, if the transfer took ten seconds, then the age at the new node will be incorrect by that amount
+ * Obviously, if the transfer took, say, ten seconds, then the age at the new node will be incorrect by that amount
  * 
- * TODO: enable adjustment where the transfer time is estimated
+ * TODO: enable adjustment where the transfer time has been estimated
  * 
  */
 public class AgeStamp 
 {
 	long	mAgeInSeconds;
 	long	mWhenAgeCalculated;
-	
 	
 	public long getAgeInSeconds()
 	{
