@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:weightSum="1">
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:weightSum="1.0">
+<TextView  
+	android:textAppearance="?android:attr/textAppearanceSmall" 
+    android:layout_width="fill_parent" 
+    android:layout_weight=".60"
+    android:layout_height="wrap_content" 
+    android:text="@string/crowd_name_instruction"
+	android:layout_marginTop="10px" 
+    />
+<EditText 
+	android:textAppearance="?android:attr/textAppearanceSmall" 
+	android:layout_height="wrap_content" 
+	android:text="InCrowd"
+	android:layout_width="fill_parent" 
+    android:layout_weight=".40"
+	android:layout_marginLeft="10px"
+	android:layout_marginBottom="10px"
+	android:layout_marginRight="10px"
+	android:layout_marginTop="10px" 
+	android:background="#FFFFFF" 
+	android:id="@+id/crowdName" 
+	android:paddingBottom="10px"
+	android:paddingTop="10px"
+	android:paddingRight="10px"
+	android:paddingLeft="10px"
+	/>
+</LinearLayout>
+
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:weightSum="1.0">
+<TextView  
+	android:textAppearance="?android:attr/textAppearanceSmall" 
+    android:layout_width="fill_parent" 
+    android:layout_weight=".60"
+    android:layout_height="wrap_content" 
+    android:text="@string/crowd_password_instruction"
+    />
+<EditText 
+	android:textAppearance="?android:attr/textAppearanceSmall" 
+	android:layout_height="wrap_content" 
+	android:text="crowdBaby"
+	android:inputType="textPassword"
+	android:layout_width="fill_parent" 
+    android:layout_weight=".40"
+	android:layout_marginLeft="10px"
+	android:layout_marginBottom="10px"
+	android:layout_marginRight="10px"
+	android:layout_marginTop="10px" 
+	android:background="#FFFFFF" 
+	android:id="@+id/crowdPassword" 
+	android:paddingBottom="10px"
+	android:paddingTop="10px"
+	android:paddingRight="10px"
+	android:paddingLeft="10px"
+	/>
+</LinearLayout>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:weightSum="1.0">
+    <TextView
+        android:id="@+id/yourNameLabel"
+        android:layout_width="fill_parent"
+        android:layout_weight=".60"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10px"
+        android:text="@string/your_name_instruction"
+        android:textAppearance="?android:attr/textAppearanceSmall" 
+    />
+
+    <EditText
+        android:id="@+id/yourName"
+        android:layout_width="fill_parent"
+       	android:layout_weight=".40"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10px"
+        android:layout_marginLeft="10px"
+        android:layout_marginRight="10px"
+        android:layout_marginTop="10px"
+        android:background="#FFFFFF"
+        android:paddingBottom="10px"
+        android:paddingLeft="10px"
+        android:paddingRight="10px"
+        android:paddingTop="10px"
+        android:text="InCrowd"
+        android:textAppearance="?android:attr/textAppearanceSmall" 
+        />
+</LinearLayout>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:weightSum="1.0">
+<TextView  
+	android:textAppearance="?android:attr/textAppearanceSmall" 
+    android:layout_width="fill_parent" 
+    android:layout_weight=".60"
+    android:layout_height="wrap_content" 
+    android:text="@string/map_lat_instruction"
+    />
+<EditText 
+	android:textAppearance="?android:attr/textAppearanceSmall" 
+	android:layout_height="wrap_content" 
+	android:text="crowdBaby"
+	android:layout_width="fill_parent" 
+    android:layout_weight=".40"
+	android:layout_marginLeft="10px"
+	android:layout_marginBottom="10px"
+	android:layout_marginRight="10px"
+	android:layout_marginTop="10px" 
+	android:background="#FFFFFF" 
+	android:id="@+id/mapLat" 
+	android:paddingBottom="10px"
+	android:paddingTop="10px"
+	android:paddingRight="10px"
+	android:paddingLeft="10px"
+	/>
+</LinearLayout>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:weightSum="1.0">
+<TextView  
+	android:textAppearance="?android:attr/textAppearanceSmall" 
+    android:layout_width="fill_parent" 
+    android:layout_weight=".60"
+    android:layout_height="wrap_content" 
+    android:text="@string/map_long_instruction"
+    />
+<EditText 
+	android:textAppearance="?android:attr/textAppearanceSmall" 
+	android:layout_height="wrap_content" 
+	android:text="crowdBaby"
+	android:layout_width="fill_parent" 
+    android:layout_weight=".40"
+	android:layout_marginLeft="10px"
+	android:layout_marginBottom="10px"
+	android:layout_marginRight="10px"
+	android:layout_marginTop="10px" 
+	android:background="#FFFFFF" 
+	android:id="@+id/mapLong" 
+	android:paddingBottom="10px"
+	android:paddingTop="10px"
+	android:paddingRight="10px"
+	android:paddingLeft="10px"
+	/>
+</LinearLayout>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:weightSum="1.0">
+<TextView  
+	android:textAppearance="?android:attr/textAppearanceSmall" 
+    android:layout_width="fill_parent" 
+    android:layout_weight=".60"
+    android:layout_height="wrap_content" 
+    android:text="@string/map_zoom_instruction"
+    />
+	<EditText 
+		android:textAppearance="?android:attr/textAppearanceSmall" 
+		android:layout_height="wrap_content" 
+		android:text="crowdBaby"
+		android:layout_width="fill_parent" 
+       	android:layout_weight=".40"
+		android:layout_marginLeft="10px"
+		android:layout_marginBottom="10px"
+		android:layout_marginRight="10px"
+		android:layout_marginTop="10px" 
+		android:background="#FFFFFF" 
+		android:id="@+id/mapZoom" 
+		android:paddingBottom="10px"
+		android:paddingTop="10px"
+		android:paddingRight="10px"
+		android:paddingLeft="10px"
+		/>
+</LinearLayout>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content">
+
+<Button
+	    android:id="@+id/ok"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+        android:layout_below="@id/mapZoom"
+	    android:layout_alignParentRight="true"
+		android:layout_marginRight="10px"
+	    android:layout_marginLeft="10px" 
+	    android:text="OK" />
+</RelativeLayout>
+
+<TextView 
+	android:textAppearance="?android:attr/textAppearanceSmall" 
+	android:text="TextView" 
+	android:layout_height="wrap_content" 
+	android:layout_width="wrap_content" 
+	android:id="@+id/outputTextView"
+	android:layout_marginLeft="10px"
+	android:layout_marginBottom="10px"
+	android:layout_marginRight="10px"
+	android:layout_marginTop="10px" 
+	android:paddingBottom="10px"
+	android:paddingTop="10px"
+	android:paddingRight="10px"
+	android:paddingLeft="10px"
+	/>
+<!--
+<ImageView 
+	android:id="@+id/map"
+	android:scaleType="center"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:src="@drawable/itumap"
+ 	/>
+ -->
+</LinearLayout>

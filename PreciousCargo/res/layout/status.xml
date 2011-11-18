@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:weightSum="1"
+    >
+    <RadioGroup
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+	  android:checkedButton="@+id/radio_role_none"
+      android:id="@+id/radioroles"
+      android:weightSum="100"
+      >
+      <RadioButton android:id="@+id/radio_role_none"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="none" />
+      <RadioButton android:id="@+id/radio_role_hold"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="hold" />
+      <RadioButton android:id="@+id/radio_role_sync"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="sync" />
+    </RadioGroup>	
+    <ScrollView android:id="@+id/ScrollView02" 
+            android:layout_width="wrap_content" 
+            android:layout_height="wrap_content"
+            xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView 
+		android:textAppearance="?android:attr/textAppearanceMedium" 
+		android:layout_height="wrap_content" 
+		android:text="TextView" 
+		android:layout_width="match_parent" 
+		android:id="@+id/outputTextView"
+		android:layout_marginLeft="10px"
+		android:layout_marginBottom="10px"
+		android:layout_marginRight="10px"
+		android:layout_marginTop="10px" 
+		android:paddingBottom="10px"
+		android:paddingTop="10px"
+		android:paddingRight="10px"
+		android:paddingLeft="10px" android:layout_weight="0.36"
+		/>
+    </ScrollView>
+</LinearLayout>

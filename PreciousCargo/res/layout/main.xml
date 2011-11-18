@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:weightSum="1">
+<TextView  
+	android:textAppearance="?android:attr/textAppearanceLarge" 
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    android:text="@string/hello"
+    />
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content">
+	<EditText 
+		android:textAppearance="?android:attr/textAppearanceLarge" 
+		android:layout_height="wrap_content" 
+		android:text=""
+		android:lines="3"
+		android:gravity="top"
+		android:layout_width="match_parent" 
+		android:layout_marginLeft="10px"
+		android:layout_marginBottom="10px"
+		android:layout_marginRight="10px"
+		android:layout_marginTop="10px" 
+		android:background="#FFFFFF" 
+		android:id="@+id/sendText" 
+		android:paddingBottom="10px"
+		android:paddingTop="10px"
+		android:paddingRight="10px"
+		android:paddingLeft="10px"
+		/>
+
+	<Button
+	    android:id="@+id/sendButton"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentRight="true"
+	    android:layout_below="@id/sendText"
+	    android:layout_marginLeft="10dip"
+	    android:layout_marginRight="10px"
+	    android:text="@string/send_button_name" />
+
+	</RelativeLayout>
+	<TextView 
+		android:textAppearance="?android:attr/textAppearanceMedium" 
+		android:layout_height="wrap_content" 
+		android:text="TextView" 
+		android:layout_width="match_parent" 
+		android:layout_weight="0.66" 
+		android:id="@+id/outputTextView"
+		android:layout_marginLeft="10px"
+		android:layout_marginBottom="10px"
+		android:layout_marginRight="10px"
+		android:layout_marginTop="10px" 
+		android:paddingBottom="10px"
+		android:paddingTop="10px"
+		android:paddingRight="10px"
+		android:paddingLeft="10px"
+		/>
+</LinearLayout>
