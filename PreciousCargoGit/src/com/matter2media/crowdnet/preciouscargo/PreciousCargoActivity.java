@@ -1,4 +1,4 @@
-package com.metter2media.crowdnet.preciouscargo;
+package com.matter2media.crowdnet.preciouscargo;
 
 import java.util.List;
 
