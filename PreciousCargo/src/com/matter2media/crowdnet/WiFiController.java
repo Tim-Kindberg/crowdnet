@@ -363,25 +363,6 @@ public class WiFiController
 	   }
    }
    
-   /*
-    * Return the WiFi MAC address 
-    * 
-    * TODO Haven't figured out how to do this yet
-    */
-   public String getMACaddress()
-   {
-	   /*
-	    *  only works if connected?! Must be a better way!
-	   if ( mMACaddress == null )
-	   {
-		   WifiInfo wifiInf = mWiFiManager.getConnectionInfo();
-		   mMACaddress = wifiInf.getMacAddress();
-	   }
-	   */
-	   TelephonyManager telephonyManager = (TelephonyManager)mCrowdNet.getSystemService(Context.TELEPHONY_SERVICE);
-	   return telephonyManager.getDeviceId();
-   }
-   
    private void report( String msg )
    {
 	   mCrowdNet.report( msg );

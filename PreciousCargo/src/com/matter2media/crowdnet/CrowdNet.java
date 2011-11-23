@@ -52,7 +52,7 @@ public class CrowdNet extends Service implements LocationListener
 	private int					mState;
 	private long				mSequence;
 	private String 				mLocationProvider;
-	private String				mMyMacAddress;
+	private String				mMyUniqueId;
 	private Hold				mThisHold;
 	private HashMap<String, Hold>		mHolds; // All the Holds we have heard of, by BSSID. Some may no longer be visible (in scan range)
 	private SyncTask			mSyncTask;
@@ -85,7 +85,7 @@ public class CrowdNet extends Service implements LocationListener
         mHolds = new HashMap<String, Hold>();
         mSettings = getSharedPreferences( getString( R.string.prefs ), Context.MODE_PRIVATE );
         mWiFiController = new WiFiController( this );
-        mMyMacAddress = mWiFiController.getMACaddress();
+        mMyUniqueId = new DeviceUuidFactory( this ).getDeviceUuid().toString();
         mCrowdServer = new CrowdServer( this, 8080 );
        	mCrowdServer.startServer();
        	report("Started CrowdServer...");
@@ -153,7 +153,7 @@ public class CrowdNet extends Service implements LocationListener
 	
 	public void sendString( String topic, String data )
 	{
-		mCrowdServer.addData( new CrowdData( topic, mMyMacAddress, mSequence++, "text/plain", data ) );
+		mCrowdServer.addData( new CrowdData( topic, mMyUniqueId, mSequence++, "text/plain", data ) );
 		notifyHandlers();
 	}
 	
@@ -270,7 +270,7 @@ public class CrowdNet extends Service implements LocationListener
 		String holdName = getHoldName( point );
 		try
 		{
-			mThisHold = new Hold( this.mMyMacAddress, holdName );
+			mThisHold = new Hold( this.mMyUniqueId, holdName );
 			mWiFiController.setWiFiAP( holdName, getCrowdPassword(), true );
 		}
 		catch ( Exception ex )
